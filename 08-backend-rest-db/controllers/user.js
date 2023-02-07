@@ -13,15 +13,19 @@ const getUsers = (req=request,res=response)=>{
   })
 }
 
-const postUser = async (req,res)=>{
-  const {name,email,password,role} = req.body;
+const postUser = async (request,response)=>{
+  const {name,email,password,role} = request.body;
   const user = new User({name,email,password,role});
   // verificar si el email existe
+  const existeEmail = await User.findOne({email});
+  if(existeEmail){
+    return response.status(400).json({
+      msg:'This email already exits'
+    })
+  }
   // Encriptar password
   const salt = bcryptjs.genSaltSync();
   user.password = bcryptjs.hashSync(password,salt);
-
-  user.password = 
   // Save Data en BD
   await user.save();
   res.json({
