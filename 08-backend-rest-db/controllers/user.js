@@ -1,56 +1,56 @@
-const {response,request} = require('express');
-const bcryptjs = require('bcryptjs');
-const User = require('../models/user');
+const { response, request } = require("express");
+const bcryptjs = require("bcryptjs");
+const User = require("../models/user");
 
-const getUsers = (req=request,res=response)=>{
-  const {q,nombre,apikey,limit,page=1} = req.query;
+const getUsers = (req = request, res = response) => {
+  const { q, nombre, apikey, limit, page = 1 } = req.query;
   res.json({
     q,
     nombre,
     apikey,
     limit,
-    page
-  })
-}
+    page,
+  });
+};
 
-const postUser = async (request,response)=>{
-  const {name,email,password,role} = request.body;
-  const user = new User({name,email,password,role});
-  // verificar si el email existe
-  const existeEmail = await User.findOne({email});
-  if(existeEmail){
-    return response.status(400).json({
-      msg:'This email already exits'
-    })
-  }
+const postUser = async (request, response) => {
+  const { name, email, password, role } = request.body;
+  const user = new User({ name, email, password, role });
+
   // Encriptar password
   const salt = bcryptjs.genSaltSync();
-  user.password = bcryptjs.hashSync(password,salt);
+  user.password = bcryptjs.hashSync(password, salt);
   // Save Data en BD
   await user.save();
+  response.json({
+    user,
+  });
+};
+
+const putUser = async (request, response) => {
+  const { id } = request.params;
+  const {_id, password,google,email, ...resto } = request.body;
+  if (password) {
+    const salt = bcryptjs.genSaltSync();
+    resto.password = bcryptjs.hashSync(password, salt);
+  }
+  const user = await User.findByIdAndUpdate(id, resto);
+  // Todo validar contra base de datos
+  response.json({
+    msg: "put method",
+    user,
+  });
+};
+
+const deleteUser = (req, res) => {
   res.json({
-     user
-  })
-}
+    msg: "API DELETE",
+  });
+};
 
-const putUser = (req,res)=>{
-  const {id} =  req.params;
-  res.json({
-    'msg': "put method",
-    id
- })
-}
-
-const deleteUser = (req,res)=>{
-  res.json({
-    'msg': "API DELETE"
- })
-}
-
-
-module.exports ={
+module.exports = {
   getUsers,
   postUser,
   putUser,
-  deleteUser
-}
+  deleteUser,
+};
